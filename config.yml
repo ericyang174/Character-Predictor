@@ -1,0 +1,4 @@
+# Hyperparameters
+learning_rate: 0.01
+epochs: 100
+batch_size: 64
