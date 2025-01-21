@@ -12,5 +12,3 @@ Activate:
 
 Usage: 
 ```python src/predictor.py -c config.yml -m [train/test]```
-
-Hi
