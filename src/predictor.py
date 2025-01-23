@@ -2,6 +2,7 @@ import argparse
 import yaml
 import os
 import numpy as np
+import string
 import torch
 import torch.nn as nn
 
@@ -18,6 +19,46 @@ class CharPredictor(nn.Module):
         x = x[:, -1, :]
         x = self.softmax(self.linear(self.dropout(x)))
         return x
+
+def build_char_dictionary(f_path):
+    normalized_lines = []
+    unique_char = set()
+    with open(f_path, 'r') as f:
+        for line in f:
+            line = line.lower()
+            line = ''.join([char for char in line if char not in string.punctuation])
+            line = line.strip()
+            for char in line:
+                unique_char.add(char)
+            normalized_lines.append(line)
+    
+    sorted_char = sorted(list(unique_char))
+    char_dictionary = {}
+    for i in range(len(sorted_char)):
+        char_dictionary[sorted_char[i]] = i
+
+    return normalized_lines, char_dictionary
+
+def parse_train_data(normalized_lines, window_size, char_dictionary):
+    X_train = []
+    y_train = []
+
+    for line in normalized_lines:
+        for i in range(0, len(line) - window_size):
+            input = line[i : i + window_size]
+            output = line[i + window_size]
+            char_vec = []
+            for char in input:
+                char_vec.append(char_dictionary[char])
+            X_train.append(char_vec)
+            y_train.append(char_dictionary[output])
+    
+    X_train = torch.tensor(X_train).reshape(len(X_train), window_size, 1)
+    X_train = X_train / len(char_dictionary)
+    y_train = torch.tensor(y_train)
+
+    return X_train, y_train
+
 
 def main():
     parser = argparse.ArgumentParser(description="Trains or predicts characters with model")
@@ -40,8 +81,13 @@ def main():
         #     os.makedirs(args.work_dir)
 
         print("Instantiating!")
-        predictor = CharPredictor(64, 10)
+        predictor = CharPredictor(hidden_size=config["hidden_size"], vocab_size=10)
         print("Loading training data...")
+        normalized_lines, char_dictionary = build_char_dictionary("./data/dummy_train.txt")
+        X_train, y_train = parse_train_data(normalized_lines, config["window_size"], char_dictionary)
+        print(X_train)
+        print(y_train)
+        print(char_dictionary)
         # LOAD THE DATA
         # TRAIN
         # SAVE
