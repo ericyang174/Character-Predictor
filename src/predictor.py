@@ -1,6 +1,23 @@
 import argparse
 import yaml
 import os
+import numpy as np
+import torch
+import torch.nn as nn
+
+class CharPredictor(nn.Module):
+    def __init__(self, hidden_size, vocab_size):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size, num_layers=2, batch_first=True, dropout=0.1)
+        self.linear = nn.Linear(in_features=hidden_size, out_features=vocab_size)
+        self.softmax = nn.Softmax()
+        self.dropout = nn.Dropout(0.2)
+    
+    def forward(self, x):
+        x, _ = self.lstm(x)
+        x = x[:, -1, :]
+        x = self.softmax(self.linear(self.dropout(x)))
+        return x
 
 def main():
     parser = argparse.ArgumentParser(description="Trains or predicts characters with model")
@@ -18,12 +35,12 @@ def main():
     mode = args.mode 
 
     if mode == 'train':
-        if not os.path.isdir(args.work_dir):
-            print('Making working directory {}'.format(args.work_dir))
-            os.makedirs(args.work_dir)
+        # if not os.path.isdir(args.work_dir):
+        #     print('Making working directory {}'.format(args.work_dir))
+        #     os.makedirs(args.work_dir)
 
         print("Instantiating!")
-        # MAKE MODEL
+        predictor = CharPredictor(64, 10)
         print("Loading training data...")
         # LOAD THE DATA
         # TRAIN
