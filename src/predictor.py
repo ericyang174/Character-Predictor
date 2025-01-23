@@ -62,7 +62,7 @@ def parse_train_data(normalized_lines, window_size, char_dictionary):
 
 def main():
     parser = argparse.ArgumentParser(description="Trains or predicts characters with model")
-    parser.add_argument('-c', '--config', required=True, help="Path to configuation")
+    parser.add_argument('-c', '--config', required=False, help="Path to configuation")
     parser.add_argument('-m', '--mode', required=True, help="Mode should be either train or test")
     parser.add_argument('-w', '--work_dir', required=False, help="Path to save model checkpoints")
     parser.add_argument('--test_data', required=False, help="Path to the test data")
