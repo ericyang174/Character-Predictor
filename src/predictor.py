@@ -70,15 +70,16 @@ def main():
 
     args = parser.parse_args()
 
-    with open(args.config, 'r') as file:
-        config = yaml.safe_load(file)
-
     mode = args.mode 
 
+    if mode != 'train':
+        with open(args.config, 'r') as file:
+            config = yaml.safe_load(file)
+
     if mode == 'train':
-        # if not os.path.isdir(args.work_dir):
-        #     print('Making working directory {}'.format(args.work_dir))
-        #     os.makedirs(args.work_dir)
+        if not os.path.isdir(args.work_dir):
+            print('Making working directory {}'.format(args.work_dir))
+            os.makedirs(args.work_dir)
 
         print("Instantiating!")
         predictor = CharPredictor(hidden_size=config["hidden_size"], vocab_size=10)
