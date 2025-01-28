@@ -7,6 +7,8 @@ def create_train(fpath, wisize=5, tpath='./data', Xname='train_input.txt', yname
     norm_txt = normalize(fpath)
 
     for txt in norm_txt:
+        if len(txt) <= wisize:
+            txt = ('.' * (wisize - len(txt) + 1)) + txt
         for i in range(len(txt) - wisize):
             input = txt[i : i + wisize]
             output = txt[i + wisize].lower()

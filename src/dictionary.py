@@ -34,8 +34,9 @@ class CharDictionary:
         input = open(fpath, 'r')
 
         for data in input:
-            vec = []
-            for chr in data:
+            pad_count = data.count('.')
+            vec = [0] * pad_count
+            for chr in data[pad_count:]:
                 if chr == '\n':
                     continue
 
