@@ -1,0 +1,8 @@
+# Hyperparameters
+lr: 0.01
+epochs: 100
+batch_size: 8
+train_input_path: "fdsfsdf"
+train_label_path: "dsflkjsdlfj"
+hidden_size: 64
+window_size: 5

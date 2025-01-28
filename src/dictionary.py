@@ -1,12 +1,12 @@
 import string
-import json
+import yaml
 import torch
 from predutils import normalize
 
 class CharDictionary:
     def __init__(self, dictionary=None):
         self.dictionary = dictionary
-        self.DICT_FNAME = 'dict.json'
+        self.DICT_FNAME = 'dict.yml'
 
     def fit(self, fpath, odir='./work'):
         self.dictionary = {}
@@ -23,7 +23,7 @@ class CharDictionary:
             self.dictionary[chr] = idx + 1
 
         with open(f'{odir}/{self.DICT_FNAME}', 'w') as fdict:
-            fdict.write(json.dumps(self.dictionary))
+            fdict.write(yaml.dump(self.dictionary))
 
     def transform_input(self, fpath, wisize=5):
         if self.dictionary is None:
@@ -32,7 +32,6 @@ class CharDictionary:
         embeddings = []
 
         input = open(fpath, 'r')
-        print(self.dictionary)
 
         for data in input:
             vec = []
@@ -43,7 +42,6 @@ class CharDictionary:
                 if chr in self.dictionary:
                     vec.append(self.dictionary[chr])
                 else:
-                    print(len(chr))
                     vec.append(len(self.dictionary) + 1)
 
             embeddings.append(vec)

@@ -20,6 +20,9 @@ class CharPredictor(nn.Module):
         x = x[:, -1, :]
         x = self.linear(self.dropout(x))
         return x
+    
+    def __call__(self, x):
+        return self.forward(x)
 
 def train(config, X_train, y_train, predictor):
     dataset = torch.utils.data.TensorDataset(X_train, y_train)
