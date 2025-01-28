@@ -8,6 +8,9 @@ class CharDictionary:
         self.dictionary = dictionary
         self.DICT_FNAME = 'dict.yml'
 
+    def get_dict(self):
+        return self.dictionary
+
     def fit(self, fpath, odir='./work'):
         self.dictionary = {}
 
@@ -67,3 +70,35 @@ class CharDictionary:
             out_embeddings.append(self.dictionary[chr] - 1)
 
         return torch.tensor(out_embeddings)
+    
+    def transform_test_input(self, fpath, wisize=5):
+        if self.dictionary is None:
+            raise Exception("Need to fit Dictionary before transforming")
+
+        embeddings = []
+
+        input = open(fpath, 'r')
+
+        for data in input:
+            vec = []
+            data = data.replace('\n', '')
+            if len(data) < wisize:
+                vec = [0] * (wisize - len(data))
+
+            for chr in data[max(0, len(data) - wisize):]:
+                if chr == '\n':
+                    continue
+
+                if chr in self.dictionary:
+                    vec.append(self.dictionary[chr])
+                else:
+                    vec.append(len(self.dictionary) + 1)
+
+            embeddings.append(vec)
+
+        input.close()
+
+        embeddings = torch.tensor(embeddings).reshape(len(embeddings), wisize, 1)
+        embeddings = embeddings / (len(self.dictionary) + 2)
+
+        return embeddings
