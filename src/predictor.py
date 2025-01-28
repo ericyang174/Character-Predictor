@@ -59,9 +59,10 @@ def train(config, X_train, y_train, predictor):
                 total_sample += len(y_batch)
 
                 correct = 0
-                argmax = torch.argmax(y_pred, dim=1)
-                for i in range(len(argmax)):
-                    if (argmax[i] == y_batch[i]):
+                topk_values, topk_indices = torch.topk(y_pred, k=3, dim=1, largest=True, sorted=True)
+                # Check if any of the top 3 predicted labels match the ground truth
+                for i in range(len(topk_indices)):
+                    if y_batch[i] in topk_indices[i]:
                         correct += 1
                 total_correct += correct
 
