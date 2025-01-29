@@ -2,7 +2,8 @@
 lr: 0.01
 epochs: 100
 batch_size: 8
-train_input_path: "fdsfsdf"
-train_label_path: "dsflkjsdlfj"
+train_input_path: ""
+train_label_path: ""
+save_path: "work/model_test.pth"
 hidden_size: 64
 window_size: 5
