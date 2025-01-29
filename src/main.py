@@ -13,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description="Trains or predicts characters with model")
     parser.add_argument('mode', choices=('train, test'), help='What mode to run the program, train or test')
     parser.add_argument('-c', '--config', required=False, default='./src/config.yml', help="Path to configuation")
-    parser.add_argument('-w', '--work_dir', required=False, default='./work', help="Path to save model checkpoints")
+    parser.add_argument('-w', '--work_dir', required=False, default='./work', help="Path to save/load model checkpoints")
     parser.add_argument('--test_dir', required=False, default='./data', help='Which directory to store the test data and output')
     parser.add_argument('--test_data', required=False, default='test_input.txt', help='Where to store the test data extracted from the dataset')
     parser.add_argument('--test_output', required=False, default='test_output.txt', help="Path to save output")
@@ -30,56 +30,37 @@ def main():
         config = yaml.safe_load(file)
 
     if mode == 'train':
+        # Creates input/output training data using sliding window
         create_train(args.dataset, config["window_size"])
 
+        # Generates dictionary based on input data
         cdict = CharDictionary()
         cdict.fit(args.dataset)
+
+        # Creates embeddings for input/output training data
         X_train = cdict.transform_input(f'{args.train_dir}/{args.train_input}', config["window_size"])
         y_train = cdict.transform_output(f'{args.train_dir}/{args.train_output}')
 
+        # Creates, trains, and saves model
         model = p.CharPredictor(hidden_size=config["hidden_size"], vocab_size=len(cdict.dictionary))
         p.train(config, X_train, y_train, model)
-        print(cdict.dictionary)
         
     elif mode == 'test':
-        print("Loading model...")
-        # LOAD MODEL
-        # if not os.path.isfile(f'{args.work_dir}/{args.dict_path}'):
-        #     raise Exception('Dictionary YAML doesn\'t exist')
+        # Opens the file to write predictions to
+        foutput = open(f'{args.test_dir}/{args.test_output}', 'w')        
 
-        # with open(f'{args.work_dir}/{args.dict_path}', 'r') as fdict:
-        #     cdict = CharDictionary(yaml.safe_load(fdict))
-
-        # # print(cdict.dictionary)
-
-        # model = torch.load(f'{args.work_dir}/model.pth')
-
-        print("Loading test data...")
-        
-        # X_test = cdict.transform_input('example/input.txt', config["window_size"])
-
-        print("Making predictions")
-        # PREDICT AND WRITE TO FILE
-        # y_pred = model(X_test)
-
-        # finput = open(args.test_data, 'r')
-        foutput = open(f'{args.test_dir}/{args.test_output}', 'w')
-
-        # for _ in finput:
-        #     out = f'{random.choice(string.ascii_letters)}{random.choice(string.ascii_letters)}{random.choice(string.ascii_letters)}\n'
-        #     foutput.write(out)
-        
-
+        # Loads in the previously generated dictionary
         with open(f'{args.work_dir}/{args.dict_path}', 'r') as fdict:
             cdict = CharDictionary(yaml.safe_load(fdict))
 
+        # Creates necessary embeddings and loads pretrained model
         X_test = cdict.transform_test_input(f'{args.test_dir}/{args.test_data}', config["window_size"])
         model = torch.load(f'{args.work_dir}/model.pth')[0]
 
         model.eval()
         with torch.no_grad():
             y_pred = model(X_test)
-            topk_values, topk_indices = torch.topk(y_pred, k=3, dim=1, largest=True, sorted=True)
+            _, topk_indices = torch.topk(y_pred, k=3, dim=1, largest=True, sorted=True)
 
         for i in range(len(topk_indices)):
             # Get top 3 predicted characters for the i-th sample
@@ -90,9 +71,6 @@ def main():
             # Write the top 3 predictions (separated by spaces or commas) for this sample to the file
             foutput.write(''.join(top_3_chars) + '\n')
 
-        # foutput.write(y_pred)
-
-        # finput.close()
         foutput.close()
         fdict.close()
     else:
