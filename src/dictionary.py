@@ -113,6 +113,8 @@ class CharDictionary:
         for data in input:
             embedding = []
             data = data.replace('\n', '')
+            data = data.lower()
+            data = ''.join([char for char in data if char not in string.punctuation])
             if len(data) < window_size:
                 embedding = [0] * (window_size - len(data))
 

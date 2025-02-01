@@ -55,7 +55,7 @@ def main():
 
         # Creates necessary embeddings and loads pretrained model
         X_test = cdict.transform_test_input(f'{args.test_dir}/{args.test_data}', config["window_size"])
-        model = torch.load(f'{args.work_dir}/model.pth')[0]
+        model = torch.load(config["save_path"])
 
         model.eval()
         with torch.no_grad():
@@ -68,7 +68,7 @@ def main():
             top_3_indices = topk_indices[i].tolist()
             top_3_chars = [key for idx in top_3_indices for key, value in dict.items() if value == idx + 1]
             
-            # Write the top 3 predictions (separated by spaces or commas) for this sample to the file
+            # Write the top 3 predictions
             foutput.write(''.join(top_3_chars) + '\n')
 
         foutput.close()
