@@ -6,7 +6,7 @@ from predutils import normalize
 class CharDictionary:
     def __init__(self, dictionary=None):
         self.dictionary = dictionary
-        self.DICT_FNAME = 'dict.yml'
+        self.DICT_FNAME = 'dict_wikitext.yml'
 
     def get_dict(self):
         return self.dictionary

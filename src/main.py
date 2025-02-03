@@ -19,7 +19,7 @@ def main():
     parser.add_argument('--test_output', required=False, default='test_output.txt', help="Path to save output")
     parser.add_argument('--dict_path', required=False, default='dict.yml', help='Filename of the dictionary')
     parser.add_argument('--dataset', required=False, default='./data/dummy_train.txt', help="Path to dataset")
-    parser.add_argument('--train_dir', required=False, default='./data', help='Which directory to store the training data and output')
+    parser.add_argument('--data_dir', required=False, default='./data', help='Which directory to store the training data and output')
     parser.add_argument('--train_input', required=False, default='train_input.txt', help='Where to store the train data extracted from the dataset')
     parser.add_argument('--train_output', required=False, default='train_output.txt', help='Where to store the train output extracted from the dataset')
 
@@ -31,17 +31,20 @@ def main():
 
     if mode == 'train':
         # Creates input/output training data using sliding window
-        create_train(args.dataset, config["window_size"])
+        create_train(args.dataset, config["window_size"], args.data_dir, args.train_input, args.train_output)
+        print("CREATED INPUT")
 
         # Generates dictionary based on input data
         cdict = CharDictionary()
         cdict.fit(args.dataset)
+        print("FITTED")
 
         # Creates embeddings for input/output training data
-        X_train = cdict.transform_input(f'{args.train_dir}/{args.train_input}', config["window_size"])
-        y_train = cdict.transform_output(f'{args.train_dir}/{args.train_output}')
+        X_train = cdict.transform_input(f'{args.data_dir}/{args.train_input}', config["window_size"])
+        y_train = cdict.transform_output(f'{args.data_dir}/{args.train_output}')
 
         # Creates, trains, and saves model
+        print("DONE WITH DATA!")
         model = p.CharPredictor(hidden_size=config["hidden_size"], vocab_size=len(cdict.dictionary))
         p.train(config, X_train, y_train, model)
         

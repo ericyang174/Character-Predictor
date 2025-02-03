@@ -10,3 +10,7 @@ dependencies:
   - tqdm=4.62.3
   - matplotlib=3.4.3
   - pyyaml
+  - pip
+  - pip:
+      - datasets
+      - transformers 
