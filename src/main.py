@@ -29,6 +29,8 @@ def main():
     with open(args.config, 'r') as file:
         config = yaml.safe_load(file)
 
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     if mode == 'train':
         # Creates input/output training data using sliding window
         create_train(args.dataset, config["window_size"], args.data_dir, args.train_input, args.train_output)
@@ -43,9 +45,14 @@ def main():
         X_train = cdict.transform_input(f'{args.data_dir}/{args.train_input}', config["window_size"])
         y_train = cdict.transform_output(f'{args.data_dir}/{args.train_output}')
 
+        X_train =  X_train.to(DEVICE)
+        y_train = y_train.to(DEVICE)
+
         # Creates, trains, and saves model
         print("DONE WITH DATA!")
         model = p.CharPredictor(hidden_size=config["hidden_size"], vocab_size=len(cdict.dictionary))
+        model.to(DEVICE)
+
         p.train(config, X_train, y_train, model)
         
     elif mode == 'test':
