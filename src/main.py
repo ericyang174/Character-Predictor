@@ -51,7 +51,7 @@ def main():
         # Creates, trains, and saves model
         print("DONE WITH DATA!")
         model = p.CharPredictor(hidden_size=config["hidden_size"], vocab_size=len(cdict.dictionary))
-        model.to(DEVICE)
+        model = model.to(DEVICE)
 
         p.train(config, X_train, y_train, model)
         
