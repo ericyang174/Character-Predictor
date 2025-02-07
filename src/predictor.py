@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.utils.data as data
 import random
+from tqdm import tqdm
 
 class CharPredictor(nn.Module):
     def __init__(self, hidden_size, vocab_size):
@@ -37,7 +38,7 @@ def train(config, X_train, y_train, predictor):
     optimizer = torch.optim.Adam(predictor.parameters(), lr=config["lr"])
     ce_loss = nn.CrossEntropyLoss()
 
-    for epoch in range(config["epochs"]):
+    for epoch in tqdm(range(config["epochs"])):
         predictor.train()
         for X_batch, y_batch in train_loader:
             y_pred = predictor(X_batch)
