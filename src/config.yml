@@ -7,3 +7,4 @@ train_label_path: ""
 save_path: "work/model_test.pth"
 hidden_size: 64
 window_size: 100
+gpu: 1

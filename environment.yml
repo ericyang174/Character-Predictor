@@ -13,4 +13,5 @@ dependencies:
   - pip
   - pip:
       - datasets
-      - transformers 
+      - transformers
+      - lightning 

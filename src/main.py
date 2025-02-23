@@ -8,6 +8,7 @@ import os
 import json
 import torch
 from predutils import create_train
+import lightning as pl
 
 def main():
     parser = argparse.ArgumentParser(description="Trains or predicts characters with model")
@@ -29,8 +30,6 @@ def main():
     with open(args.config, 'r') as file:
         config = yaml.safe_load(file)
 
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     if mode == 'train':
         # Creates input/output training data using sliding window
         create_train(args.dataset, config["window_size"], args.data_dir, args.train_input, args.train_output)
@@ -45,15 +44,13 @@ def main():
         X_train = cdict.transform_input(f'{args.data_dir}/{args.train_input}', config["window_size"])
         y_train = cdict.transform_output(f'{args.data_dir}/{args.train_output}')
 
-        X_train =  X_train.to(DEVICE)
-        y_train = y_train.to(DEVICE)
-
-        # Creates, trains, and saves model
-        print("DONE WITH DATA!")
-        model = p.CharPredictor(hidden_size=config["hidden_size"], vocab_size=len(cdict.dictionary))
-        model = model.to(DEVICE)
-
-        p.train(config, X_train, y_train, model)
+        trainer = pl.Trainer(accelerator="gpu", devices=config["gpu"], max_epochs=config["epochs"])
+        predictor = p.CharPredictor(hidden_size=config["hidden_size"], 
+                                vocab_size=len(cdict.dictionary),
+                                lr=config["lr"])
+        data = p.DataModule(batch_size=config["batch_size"], X_train=X_train, y_train=y_train)
+        trainer.fit(predictor, data)
+        trainer.save_checkpoint(config["save_path"])
         
     elif mode == 'test':
         # Opens the file to write predictions to
@@ -65,7 +62,7 @@ def main():
 
         # Creates necessary embeddings and loads pretrained model
         X_test = cdict.transform_test_input(f'{args.test_dir}/{args.test_data}', config["window_size"])
-        model = torch.load(config["save_path"])
+        model = p.CharPredictor.load_from_checkpoint(config["save_path"])
 
         model.eval()
         with torch.no_grad():
