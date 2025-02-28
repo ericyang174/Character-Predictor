@@ -57,7 +57,7 @@ def main():
                              callbacks=[checkpoints])
         
         if (config["load"]):
-            predictor = p.CharPredictor.load_from_checkpoint("work/wiki_text_model.ckpt")
+            predictor = p.CharPredictor.load_from_checkpoint("work/wiki_text_model.ckpt", hidden_size=config["hidden_size"], vocab_size=len(cdict.dictionary), lr=config["lr"])
         else:
             predictor = p.CharPredictor(hidden_size=config["hidden_size"], 
                                         vocab_size=len(cdict.dictionary),
