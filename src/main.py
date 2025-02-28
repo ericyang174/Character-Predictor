@@ -2,13 +2,16 @@ import argparse
 import yaml
 import random
 import string
-from dictionary import CharDictionary
 import predictor as p
 import os
 import json
 import torch
-from predutils import create_train
 import lightning as pl
+from lightning.pytorch.callbacks import ModelCheckpoint
+
+from predutils import create_train
+from dictionary import CharDictionary
+
 
 def main():
     parser = argparse.ArgumentParser(description="Trains or predicts characters with model")
@@ -44,10 +47,22 @@ def main():
         X_train = cdict.transform_input(f'{args.data_dir}/{args.train_input}', config["window_size"])
         y_train = cdict.transform_output(f'{args.data_dir}/{args.train_output}')
 
-        trainer = pl.Trainer(accelerator="gpu", devices=config["gpu"], max_epochs=config["epochs"])
-        predictor = p.CharPredictor(hidden_size=config["hidden_size"], 
-                                vocab_size=len(cdict.dictionary),
-                                lr=config["lr"])
+        checkpoints = ModelCheckpoint(dirpath="work/",
+                                      filename="wiki_text_model",
+                                      save_top_k = 1,
+                                      every_n_epochs=1)
+        trainer = pl.Trainer(accelerator="gpu", 
+                             devices=config["gpu"], 
+                             max_epochs=config["epochs"],
+                             callbacks=[checkpoints])
+        
+        if (config["load"]):
+            predictor = p.CharPredictor.load_from_checkpoint("work/wiki_text_model.ckpt")
+        else:
+            predictor = p.CharPredictor(hidden_size=config["hidden_size"], 
+                                        vocab_size=len(cdict.dictionary),
+                                        lr=config["lr"])
+
         data = p.DataModule(batch_size=config["batch_size"], X_train=X_train, y_train=y_train)
         trainer.fit(predictor, data)
         trainer.save_checkpoint(config["save_path"])
