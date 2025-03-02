@@ -33,6 +33,8 @@ def main():
     with open(args.config, 'r') as file:
         config = yaml.safe_load(file)
 
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     if mode == 'train':
         # Creates input/output training data using sliding window
         create_train(args.dataset, config["window_size"], args.data_dir, args.train_input, args.train_output)
@@ -46,6 +48,9 @@ def main():
         # Creates embeddings for input/output training data
         X_train = cdict.transform_input(f'{args.data_dir}/{args.train_input}', config["window_size"])
         y_train = cdict.transform_output(f'{args.data_dir}/{args.train_output}')
+
+        X_train = X_train.to(DEVICE)
+        y_train = y_train.to(DEVICE)
 
         checkpoints = ModelCheckpoint(dirpath="work/",
                                       filename="wiki_text_model",
@@ -62,6 +67,8 @@ def main():
             predictor = p.CharPredictor(hidden_size=config["hidden_size"], 
                                         vocab_size=len(cdict.dictionary),
                                         lr=config["lr"])
+        
+        predictor = predictor.to(DEVICE)
 
         data = p.DataModule(batch_size=config["batch_size"], X_train=X_train, y_train=y_train)
         trainer.fit(predictor, data)
@@ -77,7 +84,10 @@ def main():
 
         # Creates necessary embeddings and loads pretrained model
         X_test = cdict.transform_test_input(f'{args.test_dir}/{args.test_data}', config["window_size"])
-        model = p.CharPredictor.load_from_checkpoint(config["save_path"])
+        model = p.CharPredictor.load_from_checkpoint(config["save_path"], hidden_size=config["hidden_size"], vocab_size=len(cdict.dictionary), lr=config["lr"])
+
+        X_test = X_test.to(DEVICE)
+        model = model.to(DEVICE)
 
         model.eval()
         with torch.no_grad():
